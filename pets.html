@@ -1,0 +1,48 @@
+<!doctype html>
+<html ng-app="App">
+<head>
+  <script type="text/javascript" src="https://code.angularjs.org/1.2.1/angular.min.js"></script>
+  <script type="text/javascript" src="https://rawgit.com/lodash/lodash/3.10.1/lodash.min.js"></script>
+  
+  <script type="text/javascript">
+	var app = angular.module('App', []);
+
+	app.controller('ListController', ['$scope', 'humans', function($scope, humans) {
+  		humans.success(function(data) {
+			var genderedHumans = _.groupBy(data, 'gender');			
+			var genderedPets = new Object;
+			
+			_.forEach(genderedHumans, function(humans, gender) {
+				genderedPets[gender] = _.compact(_.flatten(_.map(humans, "pets")));
+			});
+			
+			$scope.genderedPets = genderedPets;
+  		});
+  		
+  		humans.error(function(err) {
+  		});
+	}]);
+	
+	app.factory('humans', ['$http', function($http) { 
+  		return $http.jsonp('http://agl-developer-test.azurewebsites.net/people.json?callback=JSON_CALLBACK') 
+        	.success(function(data) { 
+            	return data; 
+            }) 
+            .error(function(err) { 
+              	return err; 
+            }); 
+	}]);
+	  
+  </script>
+</head>
+  <body ng-controller="ListController">
+    <div ng-repeat="(gender, pets) in genderedPets">
+    	<h4>{{ gender }}</hr>
+    	<ul ng-repeat="pet in pets | filter: { type:'Cat'} | orderBy: 'name'">
+    		<li>{{ pet.name }}</li>
+    	</ul>
+    </div>  
+  <div>
+  </div>
+  </body>
+</html>
